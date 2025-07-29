@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Portail AVEVA - UCB</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --blue-dark: #003865;
+      --blue-light: #0072CE;
+      --grey-light: #F5F5F5;
+      --white: #FFFFFF;
+      --font: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background-color: var(--grey-light);
+      color: #333;
+    }
+
+    header {
+      background-color: var(--blue-dark);
+      color: var(--white);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    select {
+      padding: 0.6rem;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 2rem;
+      justify-content: center;
+    }
+
+    .card {
+      background-color: var(--white);
+      border-radius: 10px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+      padding: 1.5rem;
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .card h2 {
+      color: var(--blue-dark);
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card p {
+      margin: 0 0 0.5rem 0;
+      color: #555;
+    }
+
+    .btn-group {
+      margin-top: auto;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 0.5rem 0.8rem;
+      background-color: var(--blue-light);
+      color: var(--white);
+      text-align: center;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 5px;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    .btn:hover {
+      background-color: #005B9E;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Portail centralisé AVEVA</h1>
+    <p style="margin: 0.5rem 0 0; font-size: 1rem; font-weight: 300;">UCB - Accès par bâtiment, zone et installation</p>
+  </header>
+
+  <main>
+    <div class="form-group">
+      <label for="batiment">Bâtiment :</label>
+      <select id="batiment" onchange="updateZones()">
+        <option value="">-- Choisir un bâtiment --</option>
+        <option value="B1">B1</option>
+        <option value="B2">B2</option>
+        <option value="B3">B3</option>
+        <option value="T1">T1</option>
+        <option value="T2">T2</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="zone">Zone :</label>
+      <select id="zone" onchange="displayApplications()">
+        <option value="">-- Choisir une zone --</option>
+      </select>
+    </div>
+
+    <div id="applications" class="container"></div>
+  </main>
+
+  <footer>
+    © 2025 UCB - Portail AVEVA centralisé
+  </footer>
+
+  <script>
+    const data = {
+      "B1": { "Utilities": [], "SEM": [] },
+      "B2": { "Utilities": [], "SEM": [] },
+      "B3": {
+        "Utilities": [
+          {
+            nom: "Supervision CIR3003",
+            installation: "CIR3003",
+            galaxy: "GXY_CIR3003",
+            rdp: "rdp://srv-b3-cir3003",
+            web: "https://srv-b3-omi/cir3003"
+          }
+        ],
+        "SEM": []
+      },
+      "T1": { "Utilities": [], "SEM": [] },
+      "T2": { "Utilities": [], "SEM": [] }
+    };
+
+    function updateZones() {
+      const batiment = document.getElementById('batiment').value;
+      const zoneSelect = document.getElementById('zone');
+      zoneSelect.innerHTML = '<option value="">-- Choisir une zone --</option>';
+      if (!batiment || !data[batiment]) return;
+
+      const zones = Object.keys(data[batiment]);
+      zones.forEach(z => {
+        const opt = document.createElement('option');
+        opt.value = z;
+        opt.textContent = z;
+        zoneSelect.appendChild(opt);
+      });
+
+      document.getElementById('applications').innerHTML = '';
+    }
+
+    function displayApplications() {
+      const bat = document.getElementById('batiment').value;
+      const zone = document.getElementById('zone').value;
+      const container = document.getElementById('applications');
+      container.innerHTML = '';
+
+      if (!data[bat] || !data[bat][zone]) return;
+
+      const apps = data[bat][zone];
+      apps.forEach(app => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <h2>${app.nom}</h2>
+          <p><strong>Zone :</strong> ${zone}</p>
+          <p><strong>Installation :</strong> ${app.installation}</p>
+          <p><strong>Galaxy :</strong> ${app.galaxy}</p>
+          <div class="btn-group">
+            <a class="btn" href="${app.rdp}">RDP</a>
+            <a class="btn" href="${app.web}">Web</a>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+  </script>
+
+</body>
+</html>
